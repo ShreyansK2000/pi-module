@@ -28,6 +28,7 @@ def translate():
     for detectedObject in objects:
         translation = api.translate(detectedObject['object'],
                                     targetLanguageCode)['translations'][0]['text']
+        api.text_to_speech(translation, objectCount, 'fr-FR-Julie-Apollo')
         analysisJson['objects'][objectCount]['translation'] = translation
         objectCount += 1
 
