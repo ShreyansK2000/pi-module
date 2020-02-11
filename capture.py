@@ -7,9 +7,30 @@ import draw
 
 app = Flask(__name__)
 
+language_codes ={
+    'english': 'en-us',
+    'french': 'fr-fr',
+    'german': 'de-de',
+    'spanish': 'es-es'
+    }
+
+voice_codes = {
+    'english': 'en-US-BenjaminRUS',
+    'french': 'fr-FR-Paul-Apollo',
+    'german': 'de-DE-Hedda',
+    'spanish': 'es-ES-Laura-Apollo'
+    }
+
+@app.route('/test', methods=['GET'])
+def test():
+    return jsonify({"newTest": "TEST"})
+
 @app.route('/translate', methods=['GET'])
 def translate():
-    targetLanguageCode = request.args.get('targetLanguageCode')
+    target_language = request.args.get('target_language')
+    
+    # get codes for text to speech playback
+    language_code, voice_code = get_t2s_codes(target_language);
 
     frame = get_frame()
     filename = "test_output_translate.jpeg"
@@ -27,12 +48,12 @@ def translate():
     objectCount = 0
     for detectedObject in objects:
         translation = api.translate(detectedObject['object'],
-                                    targetLanguageCode)['translations'][0]['text']
-        api.text_to_speech(translation, objectCount, 'fr-FR-Julie-Apollo')
+                                    language_code)['translations'][0]['text']
+        api.text_to_speech(translation, objectCount, language_code, voice_code)
         analysisJson['objects'][objectCount]['translation'] = translation
         objectCount += 1
 
-    analysisJson['targetLanguage'] = targetLanguageCode
+    analysisJson['targetLanguage'] = target_language
 
     return jsonify({"azure_output": analysisJson})
 
@@ -54,6 +75,9 @@ def get_frame():
     else:
         print("error")
         return None
+    
+def get_t2s_codes(target_language):
+    return language_codes[target_language], voice_codes[target_language]
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

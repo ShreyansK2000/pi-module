@@ -54,8 +54,8 @@ def detect_objects(image_data):
 
     return analysis
 
-# call this function for each word
-def text_to_speech(tts, id, voice_code):
+# call this function for each word in the objects detected json
+def text_to_speech(tts, translation_id, language_code, voice_code):
     access_token = None
     fetch_token_url = "https://westus2.api.cognitive.microsoft.com/sts/v1.0/issueToken"
     headers = {
@@ -74,15 +74,16 @@ def text_to_speech(tts, id, voice_code):
     xml_body = ElementTree.Element('speak', version='1.0')
     xml_body.set('{http://www.w3.org/XML/1998/namespace}lang', 'en-us')
     voice = ElementTree.SubElement(xml_body, 'voice')
-    voice.set('{http://www.w3.org/XML/1998/namespace}lang', 'fr-FR')
+    voice.set('{http://www.w3.org/XML/1998/namespace}lang', language_code)
     voice.set('name', voice_code) # Short name for 'Microsoft Server Speech Text to Speech Voice (en-US, Guy24KRUS)'
     voice.text = tts
     body = ElementTree.tostring(xml_body)
 
     response = requests.post(t2s_endpoint, headers=save_audio_headers, data=body)
     if response.status_code == 200:
-        with open('response' + str(id) + '.wav', 'wb') as audio:
+        with open('response' + str(translation_id) + '.wav', 'wb') as audio:
             audio.write(response.content)
-            # print("\nStatus code: " + str(response.status_code) + "\nYour TTS is ready for playback.\n")
-            # print("\nStatus code: " + str(response.status_code) + "\nSomething went wrong. Check your subscription key and headers.\n")
-            # print("Reason: " + str(response.reason) + "\n")
+            print("\nStatus code: " + str(response.status_code) + "\nYour TTS is ready for playback.\n")
+    else:
+        print("\nStatus code: " + str(response.status_code) + "\nSomething went wrong. Check your subscription key and headers.\n")
+        print("Reason: " + str(response.reason) + "\n")
