@@ -10,7 +10,6 @@ def update_history(db, _id, word):
         { "$push": { "history": word }}
     )
     
-    
 client = connect_db()
 db = client.database
 users = db.users
@@ -37,3 +36,4 @@ users.update_one(
 #Print users
 for z in users.find():
     print(z)
+
