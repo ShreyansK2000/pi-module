@@ -4,8 +4,10 @@ import cv2
 import os
 import azure_api_calls as api
 import draw
+import unidecode
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
 language_codes ={
     'english': 'en-us',
@@ -20,6 +22,14 @@ voice_codes = {
     'german': 'de-DE-Hedda',
     'spanish': 'es-ES-Laura-Apollo'
     }
+
+@app.route('/uniTest', methods=['GET'])
+def toUTF8():
+    string = "soursis d\u2019ordinateur"
+    print(string)
+    string = unidecode.unidecode(string)
+    return jsonify({"out" : string})
+    
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -43,6 +53,12 @@ def translate():
     # draw bounding boxes on all the images
     objects = analysisJson['objects']
     draw.boundingBoxes(frame, objects)
+    
+    returnJson = {
+            "objects":[],
+            "targetLanguage": target_language,
+            "nativeLanguage": "english"
+        }
 
     # find translation of detected objects for target language
     objectCount = 0
@@ -50,12 +66,15 @@ def translate():
         translation = api.translate(detectedObject['object'],
                                     language_code)['translations'][0]['text']
         api.text_to_speech(translation, objectCount, language_code, voice_code)
-        analysisJson['objects'][objectCount]['translation'] = translation
+        
+        returnJson["objects"].append({
+            "native" : detectedObject['object'],
+            "translated" : unidecode.unidecode(translation)
+            })
+        
         objectCount += 1
 
-    analysisJson['targetLanguage'] = target_language
-
-    return jsonify({"azure_output": analysisJson})
+    return jsonify(returnJson)
 
 @app.route('/get_file', methods=['GET'])
 def get_img():

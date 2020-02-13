@@ -18,5 +18,9 @@ def hey():
 def times_ten(num):
     return jsonify({'answer':num*10})
 
+@app.route('/register', methods=['POST'])
+def register():
+    return
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
