@@ -6,9 +6,10 @@ def boundingBoxes(frame, objects):
         coords = objects[object_num]['rectangle']
         x = coords['x']
         y = coords['y']
-        w = coords['h']
-        h = coords['w']
-        cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
+        cv2.rectangle(frame, (x,y), (x+coords['w'], y+coords['h']), (0,255,0), 2)
         object_num += 1
 
-    cv2.imwrite("boxed.jpeg", frame)
+    filename = 'boxed.bmp'
+    cv2.imwrite(filename, frame)
+    
+    return filename
