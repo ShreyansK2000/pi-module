@@ -3,8 +3,10 @@ import numpy as np
 import cv2
 import os
 import azure_api_calls as api
+import de1_sockets as de1sock
 import draw
 import unidecode
+import _thread
 from PIL import Image
 
 import pdb
@@ -25,14 +27,6 @@ voice_codes = {
     'german': 'de-DE-Hedda',
     'spanish': 'es-ES-Laura-Apollo'
     }
-
-@app.route('/uniTest', methods=['GET'])
-def toUTF8():
-    string = "soursis d\u2019ordinateur"
-    print(string)
-    string = unidecode.unidecode(string)
-    return jsonify({"out" : string})
-    
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -57,7 +51,8 @@ def translate():
     objects = analysisJson['objects']
     boxed_filename = draw.boundingBoxes(frame, objects)
     
-    palettize(boxed_filename)
+    bmp_filename, palette_filename = palettize(boxed_filename)
+    _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
     
     returnJson = {
             "objects":[],
@@ -81,29 +76,40 @@ def translate():
 
     return jsonify(returnJson)
 
-@app.route('/get_file', methods=['GET'])
-def get_img():
-    frame = get_frame()
-    filename = "test_output_get_file.bmp"
-    cv2.imwrite(filename, frame)
-    
-    return send_file(filename, mimetype='image/bmp')
-
 def palettize(filename):
     limitedColours = Image.open(filename).quantize(colors=64)
-    limitedColours.save('limited.bmp')
-    limitedColoursRGB = limitedColours.convert('RGB')
+    bmp_filename = 'Images/limited.bmp'
+    limitedColours.save(bmp_filename)
     
-    colours = limitedColoursRGB.getcolors()
-    colours.sort(key=lambda x:x[1][0], reverse=True)
-    paletteFile = open('limited.txt', 'w')
+    palette_filename = getPalette(bmp_filename)
+        
+    return bmp_filename, palette_filename
+
+def getPalette(filename):
+    palette_filename = 'Images/limited.txt'
     
-    for colour in colours:
-        r = colour[1][0]
-        g = colour[1][1]
-        b = colour[1][2]
-        paletteFile.write(rgb2hex(r,g,b) + '\n')
-            
+    with open(filename, "rb") as f:
+        f.read(54) # go to offset 54
+        palette_bytes = f.read(256)
+        paletteFile = open(palette_filename, 'w')
+                
+        byte_iter = iter(palette_bytes)
+        for byte in byte_iter:
+            if byte != 0:
+                b = byte
+                g = next(byte_iter)
+                r = next(byte_iter)
+                
+                paletteFile.write(rgb2hex(r,g,b) + '\n')
+                
+                # force iterator to next 0 byte
+                try:
+                    next(byte_iter)
+                except:
+                    break
+                
+    return palette_filename
+
 def rgb2hex(r, g, b):
     return '#{:02x}{:02x}{:02x}'.format(r,g,b)
 
