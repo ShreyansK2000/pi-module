@@ -18,14 +18,16 @@ language_codes ={
     'english': 'en-us',
     'french': 'fr-fr',
     'german': 'de-de',
-    'spanish': 'es-es'
+    'spanish': 'es-es',
+    'italian': 'it-it'
     }
 
 voice_codes = {
     'english': 'en-US-BenjaminRUS',
     'french': 'fr-FR-Paul-Apollo',
     'german': 'de-DE-Hedda',
-    'spanish': 'es-ES-Laura-Apollo'
+    'spanish': 'es-ES-Laura-Apollo',
+    'italian': 'it-IT-LuciaRUS'
     }
 
 @app.route('/test', methods=['GET'])
@@ -35,9 +37,11 @@ def test():
 @app.route('/translate', methods=['GET'])
 def translate():
     target_language = (request.args.get('target_language')).lower()
+    native_language  = (request.args.get('native_language')).lower()
     
     # get codes for text to speech playback
-    language_code, voice_code = get_t2s_codes(target_language);
+    target_language_code, target_voice_code = get_t2s_codes(target_language);
+    native_language_code = language_codes[native_language]
 
     frame = get_frame()
     filename = "test_output_translate.bmp"
@@ -49,30 +53,36 @@ def translate():
 
     # draw bounding boxes on all the images
     objects = analysisJson['objects']
-    boxed_filename = draw.boundingBoxes(frame, objects)
-    
-    bmp_filename, palette_filename = palettize(boxed_filename)
-    _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
-    
+        
     returnJson = {
             "objects":[],
             "targetLanguage": target_language,
-            "nativeLanguage": "english"
+            "nativeLanguage": native_language
         }
 
     # find translation of detected objects for target language
     objectCount = 0
+    translations = []
     for detectedObject in objects:
-        translation = api.translate(detectedObject['object'],
-                                    language_code)['translations'][0]['text']
-        #api.text_to_speech(translation, objectCount, language_code, voice_code)
+        translation_object_target = api.translate(detectedObject['object'],
+                                    target_language_code)['translations'][0]['text']
+        translations.append(translation_object_target)
+        
+        translation_object_native = detectedObject['object'] if native_language is "english" else api.translate(detectedObject['object'],
+                                    native_language_code)['translations'][0]['text']
+        #api.text_to_speech(translation, objectCount, language_code, target_voice_code)
         
         returnJson["objects"].append({
-            "native" : detectedObject['object'],
-            "translated" : unidecode.unidecode(translation)
+            "native" : unidecode.unidecode(translation_object_native),
+            "translated" : unidecode.unidecode(translation_object_target)
             })
         
         objectCount += 1
+        
+    boxed_filename = draw.boundingBoxes(frame, objects, translations)
+    
+    bmp_filename, palette_filename = palettize(boxed_filename)
+    _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
 
     return jsonify(returnJson)
 
