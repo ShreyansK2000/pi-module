@@ -1,4 +1,5 @@
 from socket import *
+import _thread
 import os
 
 host = '192.168.0.200'
@@ -33,3 +34,5 @@ def send_image_data(img_path, palette_path):
     server_socket.close()
 
     print("Finished sending image data, the server socket is now closed")
+    
+    _thread.exit()

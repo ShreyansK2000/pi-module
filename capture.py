@@ -7,10 +7,14 @@ import de1_sockets as de1sock
 import draw
 import unidecode
 import _thread
+import pygame
 from PIL import Image
 
 import pdb
 
+pygame.mixer.init()
+
+z = 0
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -66,11 +70,10 @@ def translate():
     for detectedObject in objects:
         translation_object_target = api.translate(detectedObject['object'],
                                     target_language_code)['translations'][0]['text']
-        translations.append(translation_object_target)
+        translations.append(unidecode.unidecode(translation_object_target))
         
         translation_object_native = detectedObject['object'] if native_language is "english" else api.translate(detectedObject['object'],
                                     native_language_code)['translations'][0]['text']
-        #api.text_to_speech(translation, objectCount, language_code, target_voice_code)
         
         returnJson["objects"].append({
             "native" : unidecode.unidecode(translation_object_native),
@@ -86,6 +89,22 @@ def translate():
 
     return jsonify(returnJson)
 
+@app.route('/play_audio', methods=['GET'])
+def play_audio():
+    global z
+    word = (request.args.get('word')).lower()
+    language  = (request.args.get('language')).lower()
+    
+    api.text_to_speech(word, language_codes[language], voice_codes[language])
+    
+    
+    pygame.mixer.music.load('response' + str(0) + '.wav')
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy() == True:
+        continue
+    
+    return "OK"
+    
 def palettize(filename):
     limitedColours = Image.open(filename).quantize(colors=64)
     bmp_filename = 'Images/limited.bmp'
