@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, send_file
+from users import users_api
 import numpy as np
 import cv2
 import os
@@ -6,6 +7,8 @@ import azure_api_calls as api
 import draw
 
 app = Flask(__name__)
+
+app.register_blueprint(users_api, url_prefix='/users')
 
 language_codes ={
     'english': 'en-us',

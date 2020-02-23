@@ -1,0 +1,1 @@
+{'objects': [], 'requestId': '7394fbeb-6a18-4b8c-9015-e82ec15fa1a0', 'metadata': {'width': 640, 'height': 480, 'format': 'Jpeg'}}
