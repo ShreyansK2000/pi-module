@@ -18,7 +18,7 @@ def create_user(db, name, password):
 def authenticate_user(db, name, password):
     user = db.find_one({"name": name, "password": password})
     if(user)
-      return user._id.toString()
+      return user_id
     else
       return ""
 
