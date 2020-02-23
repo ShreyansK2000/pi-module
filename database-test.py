@@ -9,31 +9,16 @@ def update_history(db, _id, word):
         { "_id": _id},
         { "$push": { "history": word }}
     )
-    
-client = connect_db()
-db = client.database
-users = db.users
 
-#Delete entire table to avoid duplicate _id in testing
-users.drop()
+def create_user(db, name, password):
+    user = {"name": name, "password": password, "history": []}
+    user_id = db.insert_one(user)
+    return user_id
 
-testUser = { "name": "Alice", "password": "abc", "_id": "1", "history": [] }
-
-x = users.insert_one(testUser)
-
-print(x)
-
-y = users.find_one({ "_id": "1" })
-print(y)
-
-#Test update a query
-users.update_one(
-    { "_id": "1"},
-    { "$push": { "history": "apple" }}
-)
-
-
-#Print users
-for z in users.find():
-    print(z)
+def authenticate_user(db, name, password):
+    user = db.find_one({"name": name, "password": password})
+    if(user)
+      return user._id.toString()
+    else
+      return ""
 
