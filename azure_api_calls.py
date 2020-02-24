@@ -75,7 +75,7 @@ def text_to_speech(tts, language_code, voice_code):
 
     response = requests.post(t2s_endpoint, headers=save_audio_headers, data=body)
     if response.status_code == 200:
-        with open('response' + str(0) + '.wav', 'wb') as audio:
+        with open('Sound/response' + str(0) + '.wav', 'wb') as audio:
             audio.write(response.content)
             print("\nStatus code: " + str(response.status_code) + "\nYour TTS is ready for playback.\n")
     else:
