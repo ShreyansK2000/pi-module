@@ -1,1 +1,0 @@
-{'objects': [{'rectangle': {'x': 186, 'y': 40, 'w': 297, 'h': 190}, 'object': 'computer mouse', 'confidence': 0.838}], 'requestId': '3aa8bc6b-334e-4ff1-941a-e74d0c2dd20b', 'metadata': {'width': 640, 'height': 480, 'format': 'Jpeg'}}

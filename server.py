@@ -1,20 +1,24 @@
-from flask import Flask, jsonify, request, send_file
-import numpy as np
+# Required libraries
 import cv2
 import os
-import azure_api_calls as api
-import de1_sockets as de1sock
-import draw
 import unidecode
 import _thread
 import pygame
-from PIL import Image
+from flask import Flask, jsonify, request
 
-import pdb
+# Helper functions for database and image operations
+from database import *
+from image_operations import *
+
+# Helper script for socket communication
+import de1_sockets as de1sock
+
+# Microsoft API calls
+import azure_api_calls as api
 
 pygame.mixer.init()
 
-z = 0
+db = None
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -33,22 +37,38 @@ voice_codes = {
     'spanish': 'es-ES-Laura-Apollo',
     'italian': 'it-IT-LuciaRUS'
     }
-
+'''
+ Simple test endpoint to make sure that our
+ server is able to send responses
+'''
 @app.route('/test', methods=['GET'])
 def test():
     return jsonify({"newTest": "TEST"})
 
+'''
+ Main end point for the application.
+ 
+ @param target_language the string identifying the language to translate to
+ @param native_language the string identifying the selected native language
+ 
+ - Receives user native language and target language.
+ - Fetches image from Pi camera
+ - Sends and receives data from REST api calls for Azure API
+ - Sends response to De1Soc, image over socket thread and
+   response message over HTTP
+'''
 @app.route('/translate', methods=['GET'])
 def translate():
     target_language = (request.args.get('target_language')).lower()
     native_language  = (request.args.get('native_language')).lower()
     
-    # get codes for text to speech playback
-    target_language_code, target_voice_code = get_t2s_codes(target_language);
+    # get codes for text to speech playback and for HTTP response
+    target_language_code  = language_codes[target_language]
+    target_voice_code = voice_codes[target_language]
     native_language_code = language_codes[native_language]
 
     frame = get_frame()
-    filename = "test_output_translate.bmp"
+    filename = "Images/test_output_translate.bmp"
     cv2.imwrite(filename, frame)
     image_data = open(filename, "rb").read()
 
@@ -65,7 +85,6 @@ def translate():
         }
 
     # find translation of detected objects for target language
-    objectCount = 0
     translations = []
     for detectedObject in objects:
         translation_object_target = api.translate(detectedObject['object'],
@@ -80,81 +99,56 @@ def translate():
             "translated" : unidecode.unidecode(translation_object_target)
             })
         
-        objectCount += 1
-        
-    boxed_filename = draw.boundingBoxes(frame, objects, translations)
+    boxed_filename = boundingBoxes(frame, objects, translations)
     
     bmp_filename, palette_filename = palettize(boxed_filename)
     _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
 
     return jsonify(returnJson)
 
+'''
+'''
 @app.route('/play_audio', methods=['GET'])
 def play_audio():
-    global z
     word = (request.args.get('word')).lower()
     language  = (request.args.get('language')).lower()
     
     api.text_to_speech(word, language_codes[language], voice_codes[language])
     
-    
-    pygame.mixer.music.load('response' + str(0) + '.wav')
+    pygame.mixer.music.load('Sound/response' + str(0) + '.wav')
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy() == True:
         continue
     
     return "OK"
-    
-def palettize(filename):
-    limitedColours = Image.open(filename).quantize(colors=64)
-    bmp_filename = 'Images/limited.bmp'
-    limitedColours.save(bmp_filename)
-    
-    palette_filename = getPalette(bmp_filename)
-        
-    return bmp_filename, palette_filename
 
-def getPalette(filename):
-    palette_filename = 'Images/limited.txt'
+'''
+'''
+@app.route('/register_user', methods=['GET'])
+def register_user():
+    global db
+    name = (request.args.get('name'))
+    password  = (request.args.get('password'))
     
-    with open(filename, "rb") as f:
-        f.read(54) # go to offset 54
-        palette_bytes = f.read(256)
-        paletteFile = open(palette_filename, 'w')
-                
-        byte_iter = iter(palette_bytes)
-        for byte in byte_iter:
-            b = byte
-            g = next(byte_iter)
-            r = next(byte_iter)
-                
-            paletteFile.write(rgb2hex(r,g,b) + '\n')
-                
-            # force iterator to next 0 byte
-            try:
-                next(byte_iter)
-            except:
-                break
-                
-    return palette_filename
-
-def rgb2hex(r, g, b):
-    return '#{:02x}{:02x}{:02x}'.format(r,g,b)
-
-def get_frame():
-    camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    x, frame = camera.read()
-    if x:
-        camera.release()
-        return frame
+    if db is not None:
+        return create_user(db, name, password)
     else:
-        print("error")
-        return None
-    
-def get_t2s_codes(target_language):
-    return language_codes[target_language], voice_codes[target_language]
+        return 'NO_DB'
 
+'''
+'''
+@app.route('/authenticate_user', methods=['GET'])
+def authenticate_user():
+    global db
+    name = (request.args.get('name'))
+    password  = (request.args.get('password'))
+    
+    if db is not None:
+        return find_user(db, name, password)
+    else:
+        return 'NO_DB'
+    
+    
 if __name__ == '__main__':
+    db = connect_db()
     app.run(host='0.0.0.0', debug=True)
