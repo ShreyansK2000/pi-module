@@ -148,6 +148,19 @@ def authenticate_user():
         return find_user(db, name, password)
     else:
         return '\"NO_DB\"'
+
+'''
+'''
+@app.route('/delete_user', methods=['GET'])
+def delete_user():
+    global db
+    name = (request.args.get('name'))
+    password  = (request.args.get('password'))
+    
+    if db is not None:
+        return remove_user(db, name, password)
+    else:
+        return '\"NO_DB\"'
     
 @app.route('/add_to_history', methods=['GET'])
 def add_to_history():
