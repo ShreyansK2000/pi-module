@@ -19,7 +19,7 @@ def add_history(db, username, native_language, target_language, native_word, tar
     user = db['users'].find_one({"name" : username})
     
     if user is None:
-        return 'ERROR'
+        return '\"NO_SUCH_USER\"'
     
     for history_id in user['history_ids']:
         if history_id['id'] == translation_id:
@@ -27,17 +27,17 @@ def add_history(db, username, native_language, target_language, native_word, tar
                 {"name" : username, "history_ids.id" : translation_id},
                 {"$set" : {"history_ids.$.timestamp" : time()}}
                 )
-            return 'OK'
+            return '\"ADD_OK\"'
     
     db['users'].update({"name" : username}, {'$push': {"history_ids" :{"timestamp" : time(), "id" : translation_id}}})
-    return 'OK'
+    return '\"ADD_OK\"'
 
 def remove_history(db, username, native_language, target_language, native_word, target_word):
     # Remove the translation from the user collection if it exists,
     translation = db['translations'].find_one({"native_language" : native_language, "target_language" : target_language, "native_word" : native_word, "target_word" : target_word})
     
     if translation is None:
-        return 'ERROR'
+        return '\"NO_SUCH_TRANSLATION\"'
     
     translation_id = translation["_id"]
     db['users'].update(
@@ -45,7 +45,7 @@ def remove_history(db, username, native_language, target_language, native_word, 
         {"$pull" : {"history_ids" : {"id" : translation_id}}}
         )
     
-    return 'OK'
+    return '\"REMOVE_OK\"'
 
 def get_history(db, username):
     # Lookup user by username

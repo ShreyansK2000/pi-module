@@ -160,7 +160,7 @@ def add_to_history():
     if db is not None:
         return add_history(db, name, native_language, target_language, native_word, target_word)
     else:
-        return 'NO_DB'
+        return '\"NO_DB\"'
     
 @app.route('/remove_from_history', methods=['GET'])
 def remove_from_history():
@@ -174,7 +174,7 @@ def remove_from_history():
     if db is not None:
         return remove_history(db, name, native_language, target_language, native_word, target_word)
     else:
-        return 'NO_DB'
+        return '\"NO_DB\"'
 
 @app.route('/get_user_history', methods=['GET'])
 def get_user_history():
@@ -184,7 +184,7 @@ def get_user_history():
     if db is not None:
         return jsonify(get_history(db, name))
     else:
-        return 'NO_DB' 
+        return '\"NO_DB\"' 
     
 if __name__ == '__main__':
     db = connect_db()
