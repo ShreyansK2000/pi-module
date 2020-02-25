@@ -5,6 +5,7 @@ import unidecode
 import _thread
 import pygame
 from flask import Flask, jsonify, request
+from users import users_api
 
 # Helper functions for database and image operations
 from database import *
@@ -21,6 +22,8 @@ pygame.mixer.init()
 db = None
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
+app.register_blueprint(users_api, url_prefix='/users')
+
 
 language_codes ={
     'english': 'en-us',
