@@ -22,6 +22,8 @@ db = None
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
+latest_bmp = None
+latest_palette = None
 
 language_codes ={
     'english': 'en-us',
@@ -102,12 +104,26 @@ def translate():
         
     boxed_filename = boundingBoxes(frame, objects, translations)
     
-    bmp_filename, palette_filename = palettize(boxed_filename)
-    _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
+    global latest_bmp
+    global latest_palette
+    latest_bmp, latest_palette = palettize(boxed_filename)
 
     return jsonify(returnJson)
 
 '''
+Opens a socket to send the bmp image to the De1
+'''
+@app.route('/open_bmp_sock', methods=['GET'])
+def open_bmp_sock():
+    global latest_bmp
+    global latest_palette
+    
+    _thread.start_new_thread(de1sock.send_image_data, (latest_bmp, latest_palette))
+    
+    return '\"OK\"'
+
+'''
+Plays audio from RPi audio output over a speaker or headset using the pygame library
 '''
 @app.route('/play_audio', methods=['GET'])
 def play_audio():
