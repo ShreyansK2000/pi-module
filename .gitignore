@@ -2,3 +2,6 @@ __pycache__/
 .vscode/
 venv/
 activate-venv.txt
+Images/
+Sound/
+
