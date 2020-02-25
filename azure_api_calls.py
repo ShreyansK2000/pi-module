@@ -44,18 +44,12 @@ def detect_objects(image_data):
                              data=image_data)
     response.raise_for_status()
 
-    f = open("image_response.txt","w+")
-    f.write(str(response.json()))
-
     # The 'analysis' object contains various fields that describe the image. The most
     # relevant caption for the image is obtained from the 'description' property.
-    analysis = response.json()
-    #print(analysis)
-
-    return analysis
+    return response.json()
 
 # call this function for each word in the objects detected json
-def text_to_speech(tts, translation_id, language_code, voice_code):
+def text_to_speech(tts, language_code, voice_code):
     access_token = None
     fetch_token_url = "https://westus2.api.cognitive.microsoft.com/sts/v1.0/issueToken"
     headers = {
@@ -81,7 +75,7 @@ def text_to_speech(tts, translation_id, language_code, voice_code):
 
     response = requests.post(t2s_endpoint, headers=save_audio_headers, data=body)
     if response.status_code == 200:
-        with open('response' + str(translation_id) + '.wav', 'wb') as audio:
+        with open('Sound/response' + str(0) + '.wav', 'wb') as audio:
             audio.write(response.content)
             print("\nStatus code: " + str(response.status_code) + "\nYour TTS is ready for playback.\n")
     else:
