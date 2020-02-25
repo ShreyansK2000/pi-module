@@ -76,11 +76,11 @@ def big_translate():
     # find translation of detected objects for target language
     translations = []
     for detectedObject in objects:
-        translation_object_target = translate(detectedObject['object'],
+        translation_object_target = api_translate(detectedObject['object'],
                                     target_language_code)['translations'][0]['text']
         translations.append(unidecode.unidecode(translation_object_target))
         
-        translation_object_native = detectedObject['object'] if native_language is "english" else translate(detectedObject['object'],
+        translation_object_native = detectedObject['object'] if native_language is "english" else api_translate(detectedObject['object'],
                                     native_language_code)['translations'][0]['text']
         
         returnJson["objects"].append({

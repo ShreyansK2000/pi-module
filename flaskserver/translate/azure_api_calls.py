@@ -10,7 +10,7 @@ translation_endpoint = 'https://api.cognitive.microsofttranslator.com/translate?
 t2s_subscription_key = "64ed66f8f5124a53be448e98d0da203a"
 t2s_endpoint = 'https://westus2.tts.speech.microsoft.com/cognitiveservices/v1'
 
-def translate(input, language):
+def api_translate(input, language):
     params = '&to=' + language
     constructed_url = translation_endpoint + params
 
