@@ -9,10 +9,10 @@ import pygame
 from .image_operations import *
 
 # Helper script for socket communication
-import de1_sockets as de1sock
+from .de1_sockets import send_image_data
 
 # Microsoft API calls
-import azure_api_calls as api
+from .azure_api_calls import *
 
 translate = Blueprint('translate', __name__)
 
@@ -62,7 +62,7 @@ def big_translate():
     image_data = open(filename, "rb").read()
 
     # detect the objects in the image
-    analysisJson = api.detect_objects(image_data)
+    analysisJson = detect_objects(image_data)
 
     # draw bounding boxes on all the images
     objects = analysisJson['objects']
@@ -76,11 +76,11 @@ def big_translate():
     # find translation of detected objects for target language
     translations = []
     for detectedObject in objects:
-        translation_object_target = api.translate(detectedObject['object'],
+        translation_object_target = translate(detectedObject['object'],
                                     target_language_code)['translations'][0]['text']
         translations.append(unidecode.unidecode(translation_object_target))
         
-        translation_object_native = detectedObject['object'] if native_language is "english" else api.translate(detectedObject['object'],
+        translation_object_native = detectedObject['object'] if native_language is "english" else translate(detectedObject['object'],
                                     native_language_code)['translations'][0]['text']
         
         returnJson["objects"].append({
@@ -91,7 +91,7 @@ def big_translate():
     boxed_filename = boundingBoxes(frame, objects, translations)
     
     bmp_filename, palette_filename = palettize(boxed_filename)
-    _thread.start_new_thread(de1sock.send_image_data, (bmp_filename, palette_filename))
+    _thread.start_new_thread(send_image_data, (bmp_filename, palette_filename))
 
     return jsonify(returnJson)
 
@@ -102,7 +102,7 @@ def play_audio():
     word = (request.args.get('word')).lower()
     language  = (request.args.get('language')).lower()
     
-    api.text_to_speech(word, language_codes[language], voice_codes[language])
+    text_to_speech(word, language_codes[language], voice_codes[language])
     
     pygame.mixer.music.load('Sound/response' + str(0) + '.wav')
     pygame.mixer.music.play()

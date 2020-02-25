@@ -1,7 +1,16 @@
 from .flaskserver import create_app
 from .flaskserver.db_setup import connect_db
 
+db = None
 app = create_app()
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+@app.route('/test')
+def testing_testing():
+    return 'testing, testing'
 
 if __name__ == '__main__':
     db = connect_db()
