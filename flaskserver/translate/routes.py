@@ -1,14 +1,12 @@
-# Required libraries
+from flask import Blueprint, request, jsonify
 import cv2
 import os
 import unidecode
 import _thread
 import pygame
-from flask import Flask, jsonify, request
 
-# Helper functions for database and image operations
-from database import *
-from image_operations import *
+# Helper functions for image operations
+from .image_operations import *
 
 # Helper script for socket communication
 import de1_sockets as de1sock
@@ -16,14 +14,11 @@ import de1_sockets as de1sock
 # Microsoft API calls
 import azure_api_calls as api
 
+translate = Blueprint('translate', __name__)
+
 pygame.mixer.init()
 
-db = None
-app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
-
-
-language_codes ={
+language_codes = {
     'english': 'en-us',
     'french': 'fr-fr',
     'german': 'de-de',
@@ -38,13 +33,6 @@ voice_codes = {
     'spanish': 'es-ES-Laura-Apollo',
     'italian': 'it-IT-LuciaRUS'
     }
-'''
- Simple test endpoint to make sure that our
- server is able to send responses
-'''
-@app.route('/test', methods=['GET'])
-def test():
-    return jsonify({"newTest": "TEST"})
 
 '''
  Main end point for the application.
@@ -58,8 +46,8 @@ def test():
  - Sends response to De1Soc, image over socket thread and
    response message over HTTP
 '''
-@app.route('/translate', methods=['GET'])
-def translate():
+@translate.route('/translate', methods=['GET'])
+def big_translate():
     target_language = (request.args.get('target_language')).lower()
     native_language  = (request.args.get('native_language')).lower()
     
@@ -109,7 +97,7 @@ def translate():
 
 '''
 '''
-@app.route('/play_audio', methods=['GET'])
+@translate.route('/play_audio', methods=['GET'])
 def play_audio():
     word = (request.args.get('word')).lower()
     language  = (request.args.get('language')).lower()
@@ -122,84 +110,3 @@ def play_audio():
         continue
     
     return "OK"
-
-'''
-'''
-@app.route('/register_user', methods=['GET'])
-def register_user():
-    global db
-    name = (request.args.get('name'))
-    password  = (request.args.get('password'))
-    
-    if db is not None:
-        return create_user(db, name, password)
-    else:
-        return 'NO_DB'
-
-'''
-'''
-@app.route('/authenticate_user', methods=['GET'])
-def authenticate_user():
-    global db
-    name = (request.args.get('name'))
-    password  = (request.args.get('password'))
-    
-    if db is not None:
-        return find_user(db, name, password)
-    else:
-        return 'NO_DB'
-
-'''
-'''
-@app.route('/delete_user', methods=['GET'])
-def delete_user():
-    global db
-    name = (request.args.get('name'))
-    password  = (request.args.get('password'))
-    
-    if db is not None:
-        return remove_user(db, name, password)
-    else:
-        return 'NO_DB'
-    
-@app.route('/add_to_history', methods=['GET'])
-def add_to_history():
-    global db
-    name = (request.args.get('name'))
-    native_language = (request.args.get('native_language'))
-    target_language = (request.args.get('target_language'))
-    native_word = (request.args.get('native_word'))
-    target_word = (request.args.get('target_word'))
-    
-    if db is not None:
-        return add_history(db, name, native_language, target_language, native_word, target_word)
-    else:
-        return '\"NO_DB\"'
-    
-@app.route('/remove_from_history', methods=['GET'])
-def remove_from_history():
-    global db
-    name = (request.args.get('name'))
-    native_language = (request.args.get('native_language'))
-    target_language = (request.args.get('target_language'))
-    native_word = (request.args.get('native_word'))
-    target_word = (request.args.get('target_word'))
-    
-    if db is not None:
-        return remove_history(db, name, native_language, target_language, native_word, target_word)
-    else:
-        return '\"NO_DB\"'
-
-@app.route('/get_user_history', methods=['GET'])
-def get_user_history():
-    global db
-    name = (request.args.get('name'))
-    
-    if db is not None:
-        return jsonify(get_history(db, name))
-    else:
-        return '\"NO_DB\"' 
-    
-if __name__ == '__main__':
-    db = connect_db()
-    app.run(host='0.0.0.0', debug=True)
