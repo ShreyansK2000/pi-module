@@ -84,3 +84,18 @@ def find_user(db, name, password):
             return '\"INCORRECT_PASSWORD\"'
     else:
         return '\"USER_DNE\"'
+
+def remove_user(db, name, password):
+    user = None
+    if db['users'].find({"name": name}).count() > 0:
+        user = db['users'].find_one({"name": name, "password": password})
+        if user is not None:
+            result = db['users'].delete_one(user)
+            if result.deleted_count is 1:
+                return '\"'+'Deleted user with userid:'+str(user["_id"])+'\"'
+            else:
+                return '\"'+'Unable to delete user with userid:'+str(user["_id"])+'\"'
+        else:
+            return '\"INCORRECT_PASSWORD\"'
+    else:
+        return '\"USER_DNE\"'

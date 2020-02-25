@@ -5,7 +5,6 @@ import unidecode
 import _thread
 import pygame
 from flask import Flask, jsonify, request
-from users import users_api
 
 # Helper functions for database and image operations
 from database import *
@@ -22,7 +21,6 @@ pygame.mixer.init()
 db = None
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
-app.register_blueprint(users_api, url_prefix='/users')
 
 
 language_codes ={
@@ -148,6 +146,19 @@ def authenticate_user():
     
     if db is not None:
         return find_user(db, name, password)
+    else:
+        return 'NO_DB'
+
+'''
+'''
+@app.route('/delete_user', methods=['GET'])
+def delete_user():
+    global db
+    name = (request.args.get('name'))
+    password  = (request.args.get('password'))
+    
+    if db is not None:
+        return remove_user(db, name, password)
     else:
         return 'NO_DB'
     
