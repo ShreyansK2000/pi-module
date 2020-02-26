@@ -4,6 +4,7 @@ import os
 import unidecode
 import _thread
 import pygame
+import reverse_geocode as rg
 from flask import Flask, jsonify, request
 
 # Helper functions for database and image operations
@@ -121,6 +122,16 @@ def open_bmp_sock():
     _thread.start_new_thread(de1sock.send_image_data, (latest_bmp, latest_palette))
     
     return '\"OK\"'
+
+@app.route('/get_location', methods=['GET'])
+def get_location():
+    latitude = float(request.args.get('latitude'))
+    longitude  = float(request.args.get('longitude'))
+    
+    coordinates = [(latitude, longitude)]
+    output = rg.search(coordinates)
+    
+    return '\"' + output[0]['country'].lower() + '\"'
 
 '''
 Plays audio from RPi audio output over a speaker or headset using the pygame library

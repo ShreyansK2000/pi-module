@@ -3,8 +3,6 @@ from time import time
 import json
 import re
 
-import pdb
-
 def connect_db():
     client = pymongo.MongoClient("localhost", 27017)
     return client.endpoint_test
