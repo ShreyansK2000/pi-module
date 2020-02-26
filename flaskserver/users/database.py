@@ -4,7 +4,20 @@ import json
 import re
 
 import pdb
-    
+
+'''
+Create user helper function
+
+@param - db -> a MongoClient connected to an instance of MongoDB 
+@param - name -> string of the user's name
+@param - password -> string of the user's password
+ 
+Adds the given user to the database with name=name,
+    password=password if no such user already exists
+
+Returns - a string of the new user's userid on success and an
+          appropriate error message otherwise
+'''    
 def create_user(db, name, password):
     if db['users'].find({"name": name}).count() > 0:
         return '\"USER_EXISTS\"'
@@ -13,6 +26,18 @@ def create_user(db, name, password):
         user_id = db['users'].insert_one(user).inserted_id
         return '\"'+ str(user_id)+'\"'
 
+'''
+Find user helper function
+
+@param - db -> a MongoClient connected to an instance of MongoDB 
+@param - name -> string of the user's name
+@param - password -> string of the user's password
+ 
+Finds the given user from the database with name=name,
+    password=password if the user exists
+
+Returns - a string of the user's userid if the user exists
+'''   
 def find_user(db, name, password):
     user = None
     if db['users'].find({"name": name}).count() > 0:
@@ -24,6 +49,18 @@ def find_user(db, name, password):
     else:
         return '\"USER_DNE\"'
 
+'''
+Find user helper function
+
+@param - db -> a MongoClient connected to an instance of MongoDB 
+@param - name -> string of the user's name
+@param - password -> string of the user's password
+ 
+Finds the given user from the database with name=name,
+    password=password if the user exists
+
+Returns - a string detailing the result
+'''   
 def remove_user(db, name, password):
     user = None
     if db['users'].find({"name": name}).count() > 0:

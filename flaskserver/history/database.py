@@ -5,6 +5,21 @@ import re
 
 import pdb
 
+'''
+Add to user history helper function
+ 
+@param - name -> string of the user's name
+@param - native_language -> string of the user's native 
+                            language
+@param - target_language -> string of the user's target 
+                            language
+@param - native_word -> string of the native word of the 
+                        captured item
+@param - target_word -> string of the target (translated) 
+                        word of the captured item
+ 
+Adds the translation to the user's history 
+'''
 def add_history(db, username, native_language, target_language, native_word, target_word):
     translation = db['translations'].find_one({"native_language" : native_language, "target_language" : target_language, "native_word" : native_word, "target_word" : target_word})
     if translation is not None:
@@ -28,6 +43,21 @@ def add_history(db, username, native_language, target_language, native_word, tar
     db['users'].update({"name" : username}, {'$push': {"history_ids" :{"timestamp" : time(), "id" : translation_id}}})
     return '\"ADD_OK\"'
 
+'''
+Remove from user history helper function
+ 
+@param - name -> string of the user's name
+@param - native_language -> string of the user's native 
+                            language
+@param - target_language -> string of the user's target 
+                            language
+@param - native_word -> string of the native word of the 
+                        captured item
+@param - target_word -> string of the target (translated) 
+                        word of the captured item
+ 
+Removes the translation from the user's history 
+'''
 def remove_history(db, username, native_language, target_language, native_word, target_word):
     # Remove the translation from the user collection if it exists,
     translation = db['translations'].find_one({"native_language" : native_language, "target_language" : target_language, "native_word" : native_word, "target_word" : target_word})
@@ -43,6 +73,13 @@ def remove_history(db, username, native_language, target_language, native_word, 
     
     return '\"REMOVE_OK\"'
 
+'''
+Get user history helper function
+ 
+@param - name -> string of the user's name
+
+Gets the user's history with name=name
+'''
 def get_history(db, username):
     # Lookup user by username
     # Sort their history_id value by most recent timestamp first

@@ -14,10 +14,16 @@ from .de1_sockets import send_image_data
 # Microsoft API calls
 from .azure_api_calls import *
 
+# Create the translate blueprint
 translate = Blueprint('translate', __name__)
+
+# Initialize latest_bmp and latest_palette
+latest_bmp = None
+latest_palette = None
 
 pygame.mixer.init()
 
+# Mapping of languages to language codes for azure calls
 language_codes = {
     'english': 'en-us',
     'french': 'fr-fr',
@@ -26,6 +32,7 @@ language_codes = {
     'italian': 'it-it'
     }
 
+# Mapping of languages to voice codes for azure calls
 voice_codes = {
     'english': 'en-US-BenjaminRUS',
     'french': 'fr-FR-Paul-Apollo',
@@ -35,16 +42,15 @@ voice_codes = {
     }
 
 '''
- Main end point for the application.
+Main end point for the application.
  
- @param target_language the string identifying the language to translate to
- @param native_language the string identifying the selected native language
+@param - target_language -> string identifying the language to translate to
+@param - native_language -> string identifying the selected native language
  
- - Receives user native language and target language.
- - Fetches image from Pi camera
- - Sends and receives data from REST api calls for Azure API
- - Sends response to De1Soc, image over socket thread and
-   response message over HTTP
+Receives user native language and target language
+Fetches image from Pi camera
+Sends and receives data from REST api calls for Azure API
+Sends response to De1Soc, image over socket thread and response message over HTTP
 '''
 @translate.route('/translate', methods=['GET'])
 def big_translate():
@@ -89,13 +95,21 @@ def big_translate():
             })
         
     boxed_filename = boundingBoxes(frame, objects, translations)
+
+    global latest_bmp
+    global latest_palette
     
-    bmp_filename, palette_filename = palettize(boxed_filename)
-    _thread.start_new_thread(send_image_data, (bmp_filename, palette_filename))
+    latest_bmp, latest_palette = palettize(boxed_filename)
 
     return jsonify(returnJson)
 
 '''
+Audio endpoint for the application.
+ 
+@param word -> string identifying the language to translate to
+@param language -> string identifying the selected native language
+ 
+Receives and plays audio of the translation of the given word
 '''
 @translate.route('/play_audio', methods=['GET'])
 def play_audio():
@@ -109,4 +123,21 @@ def play_audio():
     while pygame.mixer.music.get_busy() == True:
         continue
     
-    return "OK"
+    return '\"OK\"'
+
+'''
+Open bmp socket endpoint for the application.
+ 
+@param word -> string identifying the language to translate to
+@param language -> string identifying the selected native language
+ 
+Opens a socket to send the bmp image to the DE1
+'''
+@translate.route('/open_bmp_sock', methods=['GET'])
+def open_bmp_sock():
+    global latest_bmp
+    global latest_palette
+    
+    _thread.start_new_thread(send_image_data, (latest_bmp, latest_palette))
+
+    return '\"OK\"'
