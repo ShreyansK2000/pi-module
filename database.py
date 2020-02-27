@@ -3,10 +3,20 @@ from time import time
 import json
 import re
 
+'''
+Starts and connects to the database
+ 
+ - Returns the database endpoint
+'''   
 def connect_db():
     client = pymongo.MongoClient("localhost", 27017)
     return client.endpoint_test
     
+'''
+Adds a new word to an existing user's history
+
+- Returns ADD_OK if the addition was successful and NO_SUCH_USER if the user doesn't exist
+'''
 def add_history(db, username, native_language, target_language, native_word, target_word):
     translation = db['translations'].find_one({"native_language" : native_language, "target_language" : target_language, "native_word" : native_word, "target_word" : target_word})
     if translation is not None:
@@ -30,6 +40,11 @@ def add_history(db, username, native_language, target_language, native_word, tar
     db['users'].update({"name" : username}, {'$push': {"history_ids" :{"timestamp" : time(), "id" : translation_id}}})
     return '\"ADD_OK\"'
 
+'''
+Adds a new word to an existing user's history
+
+- Returns REMOVE_OK if the addition was successful and NO_SUCH_TRANSLATION if the word doesn't exist
+'''
 def remove_history(db, username, native_language, target_language, native_word, target_word):
     # Remove the translation from the user collection if it exists,
     translation = db['translations'].find_one({"native_language" : native_language, "target_language" : target_language, "native_word" : native_word, "target_word" : target_word})
@@ -45,6 +60,11 @@ def remove_history(db, username, native_language, target_language, native_word, 
     
     return '\"REMOVE_OK\"'
 
+'''
+Fetches the entirety of an existing user's history of saved words
+
+- Returns the history in json format if it exists or an error message otherwise
+'''
 def get_history(db, username):
     # Lookup user by username
     # Sort their history_id value by most recent timestamp first
@@ -64,6 +84,11 @@ def get_history(db, username):
         
     return {"history": ret}
 
+'''
+Creates a new user in the database
+
+- Returns the new user's user_id if the creation was successful or USER_EXISTS otherwise
+'''
 def create_user(db, name, password):
     if db['users'].find({"name": name}).count() > 0:
         return '\"USER_EXISTS\"'
@@ -72,6 +97,11 @@ def create_user(db, name, password):
         user_id = db['users'].insert_one(user).inserted_id
         return '\"'+ str(user_id)+'\"'
 
+'''
+Finds a user in the database
+
+- Returns the user's user_id if successful or an error message otherwise
+'''
 def find_user(db, name, password):
     user = None
     if db['users'].find({"name": name}).count() > 0:
@@ -83,6 +113,11 @@ def find_user(db, name, password):
     else:
         return '\"USER_DNE\"'
 
+'''
+Removes a user from the database
+
+- Returns deleted user's id if successful or an error message otherwise
+'''
 def remove_user(db, name, password):
     user = None
     if db['users'].find({"name": name}).count() > 0:

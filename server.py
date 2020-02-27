@@ -113,6 +113,8 @@ def translate():
 
 '''
 Opens a socket to send the bmp image to the De1
+
+- return OK if the image was sent successfully
 '''
 @app.route('/open_bmp_sock', methods=['GET'])
 def open_bmp_sock():
@@ -122,6 +124,7 @@ def open_bmp_sock():
     _thread.start_new_thread(de1sock.send_image_data, (latest_bmp, latest_palette))
     
     return '\"OK\"'
+
 
 @app.route('/get_location', methods=['GET'])
 def get_location():
@@ -135,6 +138,11 @@ def get_location():
 
 '''
 Plays audio from RPi audio output over a speaker or headset using the pygame library
+
+@param word the word that the user wishes to hear the audio for
+@param language the target language for the audio
+
+- returns a .wav audio file with the given word spoken in the target language
 '''
 @app.route('/play_audio', methods=['GET'])
 def play_audio():
@@ -151,6 +159,13 @@ def play_audio():
     return '\"OK\"'
 
 '''
+ End point for registering a new user
+ 
+ @param name the new user's username
+ @param password the new user's password
+ 
+ - Returns the user's unique user_id if successful 
+ - create_user method takes care of instance where user already exists in the db
 '''
 @app.route('/register_user', methods=['GET'])
 def register_user():
@@ -163,7 +178,14 @@ def register_user():
     else:
         return '\"NO_DB\"'
 
-'''
+''''
+ End point for authenticating a user
+ 
+ @param name the existing user's username
+ @param password the existing user's password
+ 
+ - Returns the user's unique user_id if successful 
+ - find_user method takes care of incorrect username/password scenarios
 '''
 @app.route('/authenticate_user', methods=['GET'])
 def authenticate_user():
@@ -177,6 +199,13 @@ def authenticate_user():
         return '\"NO_DB\"'
 
 '''
+End point for deleting an existing user
+
+ @param name the existing user's username
+ @param password the existing user's password
+ 
+ - Returns the user's unique user_id if successful
+ - delete_user method takes care of incorrect username/password scenarios 
 '''
 @app.route('/delete_user', methods=['GET'])
 def delete_user():
@@ -188,7 +217,15 @@ def delete_user():
         return remove_user(db, name, password)
     else:
         return '\"NO_DB\"'
-    
+
+'''
+End point for adding a word to a user's history
+
+ @param name the user's username
+ 
+ - Returns the user's ADD_OK if successful
+ - add_history method takes care of incorrect username/password and invalid word scenarios 
+'''    
 @app.route('/add_to_history', methods=['GET'])
 def add_to_history():
     global db
@@ -202,7 +239,15 @@ def add_to_history():
         return add_history(db, name, native_language, target_language, native_word, target_word)
     else:
         return '\"NO_DB\"'
-    
+
+'''
+End point for removing a word from a user's history
+
+ @param name the user's username
+ 
+ - Returns the user's DELETE_OK if successful
+ - add_history method takes care of incorrect username/password and invalid word scenarios 
+'''      
 @app.route('/remove_from_history', methods=['GET'])
 def remove_from_history():
     global db
@@ -217,6 +262,14 @@ def remove_from_history():
     else:
         return '\"NO_DB\"'
 
+'''
+End point for adding a word to a user's history
+
+ @param name the user's username
+ 
+ - Returns a user's entire history of words
+ - add_history method takes care of incorrect username/password and invalid word scenarios 
+'''    
 @app.route('/get_user_history', methods=['GET'])
 def get_user_history():
     global db
