@@ -4,7 +4,7 @@ import os
 import unidecode
 import _thread
 import pygame
-import reverse_geocode as rg
+#import reverse_geocode as rg
 from flask import Flask, jsonify, request
 
 import threading
@@ -24,7 +24,7 @@ streaming_thread = None
 
 pygame.mixer.init()
 
-db = None
+db = connect_db()
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -50,9 +50,9 @@ voice_codes = {
  Simple test endpoint to make sure that our
  server is able to send responses
 '''
-@app.route('/test', methods=['GET'])
-def test():
-    return jsonify({"newTest": "TEST"})
+@app.route('/', methods=['GET'])
+def hello():
+    return 'Hello World'
 
 '''
  Main end point for the application.
@@ -137,7 +137,7 @@ def get_location():
     longitude  = float(request.args.get('longitude'))
     
     coordinates = [(latitude, longitude)]
-    output = rg.search(coordinates)
+    #output = rg.search(coordinates)
     
     return '\"' + output[0]['country'].lower() + '\"'
 

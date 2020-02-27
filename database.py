@@ -10,6 +10,12 @@ Starts and connects to the database
 '''   
 def connect_db():
     client = pymongo.MongoClient("localhost", 27017)
+    with client:
+        db = client.endpoint_test
+        collection = db['users']
+        print(collection)
+        db.drop_collection('users')
+    #client.drop_database('users')
     return client.endpoint_test
     
 '''
@@ -125,9 +131,9 @@ def remove_user(db, name, password):
         if user is not None:
             result = db['users'].delete_one(user)
             if result.deleted_count is 1:
-                return '\"'+'Deleted user with userid:'+str(user["_id"])+'\"'
+                return '\"SUCCESS\"'
             else:
-                return '\"'+'Unable to delete user with userid:'+str(user["_id"])+'\"'
+                return '\"FAILED\"'
         else:
             return '\"INCORRECT_PASSWORD\"'
     else:
