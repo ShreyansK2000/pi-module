@@ -2,17 +2,42 @@ from PIL import Image
 import os
 import cv2
 
-def get_frame():
+import time
+
+should_stream = False
+latest_frame = None
+
+def start_stream():
+    global should_stream
+    global latest_frame
+    
+    should_stream = True
+    
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    x, frame = camera.read()
-    if x:
-        camera.release()
-        return frame
-    else:
-        print("error")
-        return None
+    
+    while should_stream:
+        success, frame = camera.read()
+        latest_frame = frame
+        
+        if latest_frame is not None:
+            cv2.imshow("Live stream", latest_frame)
+            
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    # release video capture
+    camera.release()
+    cv2.destroyAllWindows()
+    
+def stop_stream():
+    global should_stream
+    should_stream = False
+
+def get_frame():
+    global latest_frame
+    return latest_frame
     
 def palettize(filename):
     limitedColours = Image.open(filename).quantize(colors=64)

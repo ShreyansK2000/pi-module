@@ -7,6 +7,9 @@ import pygame
 import reverse_geocode as rg
 from flask import Flask, jsonify, request
 
+import threading
+import atexit
+
 # Helper functions for database and image operations
 from database import *
 from image_operations import *
@@ -16,6 +19,8 @@ import de1_sockets as de1sock
 
 # Microsoft API calls
 import azure_api_calls as api
+
+streaming_thread = None
 
 pygame.mixer.init()
 
@@ -280,6 +285,20 @@ def get_user_history():
     else:
         return '\"NO_DB\"' 
     
+def stop_streaming_thread():
+    global streaming_thread
+    
+    stop_stream()
+    
+    if streaming_thread is not None:
+        streaming_thread.join()
+    
 if __name__ == '__main__':
     db = connect_db()
-    app.run(host='0.0.0.0', debug=True)
+    
+    streaming_thread = threading.Thread(target = start_stream, args = ())
+    streaming_thread.start()
+    
+    atexit.register(stop_streaming_thread)
+    
+    app.run(host='0.0.0.0', debug=False)
