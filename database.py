@@ -10,11 +10,6 @@ Starts and connects to the database
 '''   
 def connect_db():
     client = pymongo.MongoClient("localhost", 27017)
-    with client:
-        db = client.endpoint_test
-        collection = db['users']
-        print(collection)
-        db.drop_collection('users')
     #client.drop_database('users')
     return client.endpoint_test
     

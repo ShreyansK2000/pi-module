@@ -49,44 +49,4 @@ def test_authenticate_user_success(client):
 ''' Test that when we try to authenticate an existing user 
     with the wrong password that we get back the string 
     of "INCORRECT PASSWORD" '''
-def test_authenticate_user_wrong_password(client):
-    response = client.get('/authenticate_user', data={'name': 'delta', 
-                                                  'password': '1235'})
-    assert b'\"INCORRECT_PASSWORD\"' in response.data 
 
-''' Test that when we try to authenticate an non-existing user 
-    that we get back the string of "USER_DNE" '''
-def test_authenticate_user_no_user(client):
-    response = client.get('/authenticate_user', data={'name': 'cpen', 
-                                                  'password': '391'})
-    assert b'\"USER_DNE\"' in response.data 
-
-''' Test that when we try to delete an existing user with incorrect
-    incorrect password that we get back the string of "FAILED" '''
-def test_delete_fail(client):
-    response = client.get('/delete_user', data={'name': 'delta', 
-                                                  'password': '391'})
-    assert b'\"FAILED\"' in response.data
-
-''' Test that when we try to delete an existing user with incorrect
-    password that we get back the string of "INCORRECT_PASSWORD" '''
-def test_delete_wrong_password(client):
-    response = client.get('/delete_user', data={'name': 'delta', 
-                                                  'password': '391'})
-    assert b'\"INCORRECT_PASSWORD\"' in response.data
-
-''' Test that when we try to delete an existing user with correct
-    password that we get back the string of "SUCCESS" '''
-def test_delete_success(client):
-    response = client.get('/delete_user', data={'name': 'delta', 
-                                                  'password': '1234'})
-    assert b'\"SUCCESS\"' in response.data
-
-''' Test that when we try to delete a non-existing user 
-    that we get back the string of "USER_DNE" '''
-def test_delete_no_user(client):
-    response = client.get('/delete_user', data={'name': 'delta', 
-                                                  'password': '1234'})
-    assert b'\"USER_DNE\"' in response.data
-
-''' HISTORY ENDPOINTS '''
